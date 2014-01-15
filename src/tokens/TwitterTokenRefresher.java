@@ -70,8 +70,7 @@ public class TwitterTokenRefresher {
 		}
 		
 		// Re-call the method recursively so that a token is returned
-		createTwitterClientWithValidToken();
-		return null;
+		return createTwitterClientWithValidToken();
 	}
 	
 	public void populateListOfTokens() throws ConfigurationException {
