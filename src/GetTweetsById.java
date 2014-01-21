@@ -34,7 +34,7 @@ public class GetTweetsById {
 					twitter = TwitterTokenRefresher.getTwitterTokenRefresher().createTwitterClientWithValidToken();
 				}
 				else // If another TwitterException error was thrown, there was just a problem with this tweet for some reason
-					System.err.println("Tweet not found");
+					System.err.println(id + " not found");
 			} catch(NumberFormatException nfe) {
 				System.err.println(id + " is not in the proper format for Twitter tweet IDs");
 			}

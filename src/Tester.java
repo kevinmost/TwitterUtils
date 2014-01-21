@@ -11,20 +11,38 @@ import twitter4j.TwitterException;
 import twitter4j.User;
 
 public class Tester {
+	// args[0]: config.xml
+	// args[1]: Either a brand's name, or a file containing Tweet IDs to rehydrate
+	// args[2]: If args[1] was a brand's name, you can pass a date in the format "yyyymmdd" to get the amount of retweets for a brand on that date
 	public static void main(String[] args) throws ConfigurationException, TwitterException, NumberFormatException, IOException, InterruptedException {
-		TwitterTokenRefresher.getTwitterTokenRefresher("twitter-tokens.xml"); // Initializes the TwitterTokenRefresher with its config. All other classes in this project are set up to request a new token from this class when they run out of API requests on the current token.
-		testGetFollowersOfBrand();
+		TwitterTokenRefresher.getTwitterTokenRefresher(args[0]); // Initializes the TwitterTokenRefresher with its config. All other classes in this project are set up to request a new token from this class when they run out of API requests on the current token.
+		testTwitterTokenRefresher();
+
+		if (args.length == 2) {
+			if (args[1].contains(".")) {
+				System.err.println("Getting all tweets in file"); // TODO: Look into whether this is broken or not. Our current ID file is not working, but the tweets might just be too old for Twitter to allow access.
+				testGetTweetsById(args[1]);
+			}
+			else {
+				System.err.println("Getting followers of " + args[1]);
+				testGetFollowersOfBrand(args[1]);
+			}
+		}
+		else if (args.length == 3) {
+			System.err.println("Getting number of shares of " + args[1] + "'s tweets on " + args[2]);
+			testRetweetSummer(args[1], args[2]);
+		}
 	}
 	
 	
-	public static void testGetTweetsById() throws NumberFormatException, ConfigurationException, IOException, TwitterException, InterruptedException {
-		System.out.println(GetTweetsById.getAllTweets("ids3.txt"));
+	public static void testGetTweetsById(String filepath) throws NumberFormatException, ConfigurationException, IOException, TwitterException, InterruptedException {
+		System.out.println(GetTweetsById.getAllTweets(filepath));
 	}
-	public static void testRetweetSummer() throws ConfigurationException, TwitterException, InterruptedException {
-		System.out.println(GetSumOfRetweets.getNumberOfRetweets("united", "20140115"));
+	public static void testRetweetSummer(String brand, String yyyymmdd) throws ConfigurationException, TwitterException, InterruptedException {
+		System.out.println(GetSumOfRetweets.getNumberOfRetweets(brand, yyyymmdd));
 	}
-	public static void testGetFollowersOfBrand() throws ConfigurationException, TwitterException, InterruptedException {
-		List<User> followers = GetFollowersOfBrand.getFollowers("united"); // TODO: Apparently the URL is too long at some point with United, this needs to be fixed
+	public static void testGetFollowersOfBrand(String brand) throws ConfigurationException, TwitterException, InterruptedException {
+		List<User> followers = GetFollowersOfBrand.getFollowers(brand);
 		for (User user : followers) {
 			System.out.println(user.getName());
 		}
@@ -32,8 +50,8 @@ public class Tester {
 	public static void testTwitterTokenRefresher() throws TwitterException, ConfigurationException, InterruptedException {
 		Twitter twitter = TwitterTokenRefresher.getTwitterTokenRefresher().createTwitterClientWithValidToken();
 		for (Map.Entry<String, RateLimitStatus> rateLimit: twitter.getRateLimitStatus().entrySet()) {
-			System.out.format("%-40s%-40s", rateLimit.getKey(), rateLimit.getValue().getRemaining());
-			System.out.println();
+			System.err.format("%-40s%-40s", rateLimit.getKey(), rateLimit.getValue().getRemaining());
+			System.err.println();
 		}
 	}
 }

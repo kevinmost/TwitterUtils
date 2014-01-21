@@ -18,8 +18,8 @@ public class TwitterTokenRefresher {
 	private Twitter twitter = null;
 	private List<Configuration> configs = new ArrayList<>();
 	private XMLConfiguration config = null;
-	int resetTime = 0;
-
+	private int resetTime = 0;
+	private String[] nodes = {"/statuses/show/:id", "/followers/ids"};
 	
 	// Singleton
 	private static TwitterTokenRefresher instance;
@@ -43,8 +43,7 @@ public class TwitterTokenRefresher {
 		// Go through all of your tokens
 		for (Configuration conf : configs) {
 			twitter = new TwitterFactory(conf).getInstance(); // Rebuild the client to use the current token
-
-			if (twitter.getRateLimitStatus().get("/statuses/show/:id").getRemaining() > 0) { // Test if the token can be used, return it if it is. Otherwise, it will try another token
+			if (isTokenValidForAllNodes(twitter, nodes)) {
 				System.err.println("Success! Using token " + conf.getOAuthAccessToken());
 				return twitter;
 			}
@@ -72,7 +71,14 @@ public class TwitterTokenRefresher {
 		// Re-call the method recursively so that a token is returned
 		return createTwitterClientWithValidToken();
 	}
-	
+	public static boolean isTokenValidForAllNodes(Twitter twitter, String[] nodes) throws TwitterException {
+		boolean b = true;
+		for (String node : nodes) { // Goes through each node. If any of them are rate-limited, returns false
+			if (twitter.getRateLimitStatus().get(node).getRemaining() <= 0)
+				b = false;
+		}
+		return b;
+	}
 	public void populateListOfTokens() throws ConfigurationException {
 		for (ConfigurationNode tokenNode : config.getRoot().getChildren("token")) { // Take each "token" node in the XML and, one by one, use their data to create new Configuration objects. Store those into a List for later.
 			configs.add(
