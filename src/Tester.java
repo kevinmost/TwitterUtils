@@ -6,6 +6,7 @@ import org.apache.commons.configuration.ConfigurationException;
 
 import tokens.TwitterTokenRefresher;
 import twitter4j.RateLimitStatus;
+import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
@@ -16,11 +17,10 @@ public class Tester {
 	// args[2]: If args[1] was a brand's name, you can pass a date in the format "yyyymmdd" to get the amount of retweets for a brand on that date
 	public static void main(String[] args) throws ConfigurationException, TwitterException, NumberFormatException, IOException, InterruptedException {
 		TwitterTokenRefresher.getTwitterTokenRefresher(args[0]); // Initializes the TwitterTokenRefresher with its config. All other classes in this project are set up to request a new token from this class when they run out of API requests on the current token.
-		testTwitterTokenRefresher();
 
 		if (args.length == 2) {
 			if (args[1].contains(".")) {
-				System.err.println("Getting all tweets in file"); // TODO: Look into whether this is broken or not. Our current ID file is not working, but the tweets might just be too old for Twitter to allow access.
+				System.err.println("Getting all tweets in file");
 				testGetTweetsById(args[1]);
 			}
 			else {
@@ -35,8 +35,11 @@ public class Tester {
 	}
 	
 	
-	public static void testGetTweetsById(String filepath) throws NumberFormatException, ConfigurationException, IOException, TwitterException, InterruptedException {
-		System.out.println(GetTweetsById.getAllTweets(filepath));
+	public static void testGetTweetsById(String filepath) throws NumberFormatException, ConfigurationException, IOException, InterruptedException, TwitterException {
+		List<Status> allStatuses = GetTweetsById.getAllTweets(filepath);
+		for (Status status : allStatuses) {
+			System.out.println(status.getId() + "|" + status.getText().replaceAll("|", ""));
+		}
 	}
 	public static void testRetweetSummer(String brand, String yyyymmdd) throws ConfigurationException, TwitterException, InterruptedException {
 		System.out.println(GetSumOfRetweets.getNumberOfRetweets(brand, yyyymmdd));

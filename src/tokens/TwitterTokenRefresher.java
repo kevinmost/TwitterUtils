@@ -58,18 +58,29 @@ public class TwitterTokenRefresher {
 
 		// If none of the above tokens worked, we need to wait for our tokens to refresh
 		System.err.println("ERROR: All of your tokens are currently rate-limited. Program will sleep until a new token is available in " + resetTime + " seconds.");
-		
-		// This is a progress bar that is 50 segments long. It doesn't actually work the way we want it to in Eclipse (it won't overwrite the old one, but displays under it). This actually works in a command line console, though.
-		StringBuilder sb = new StringBuilder("|>                                                 |\r");
-		while (sb.toString().replace(" ", "").length() < 50) {
-			TimeUnit.SECONDS.sleep(resetTime/50);
-			sb.insert(1, '=');
-			sb.deleteCharAt(sb.toString().replace(" ", "").length() - 1);
-			System.out.print(sb.toString());
-		}
-		
+
+		pauseBar(resetTime);
+
 		// Re-call the method recursively so that a token is returned
 		return createTwitterClientWithValidToken();
+	}
+	// Makes the program pause for resetTime seconds, while displaying a linearly-filling progress-bar
+	public static void pauseBar(int resetTime) throws InterruptedException {
+			// This bar will actually appear to "fill up" when the program is invoked from the console. However, Eclipse's console is quirky so it will simply display the progress bar multiple times.
+			StringBuilder statusBar = new StringBuilder("|"); // Change the left-hand border of the progress bar
+			String statusBarSegment = "="; // Change the "segments" used by the bar
+			String statusBarArrow = ">"; // Change the "arrow" that appears at the end of the "currently-filled" section of the bar
+			String statusBarEnd = "|"; // Change the right-hand border of the progress bar
+			int numSegments = 50; // Change the number of segments shown in the progress bar
+			
+			// Do not modify these variables
+			int whitespace = 1;
+			int sleepTime = resetTime/numSegments; // "resetTime" is the amount of time the program should display this bar for in seconds (ex, resetTime = 60 would make this bar take 60 seconds to fill up)
+			
+			while ((whitespace = numSegments - statusBarEnd.length() - statusBar.append(statusBarSegment).length()) > 0) { // Runs until all empty space is filled
+				TimeUnit.SECONDS.sleep(sleepTime); // Pauses long enough to represent one segment of the bar
+				System.err.format("%-" + statusBar.length() + "s%-" + whitespace + "s%-" + statusBarEnd.length() + "s", statusBar.toString(), statusBarArrow, statusBarEnd + "\r"); // Prints the entire bar, formatted properly
+			}
 	}
 	public static boolean isTokenValidForAllNodes(Twitter twitter, String[] nodes) throws TwitterException {
 		boolean b = true;

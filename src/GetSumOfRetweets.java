@@ -22,8 +22,7 @@ public class GetSumOfRetweets {
 		Paging paging = new Paging(1, 200);
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 		List<Status> statusPage = new ArrayList<>();
-		// boolean isNumeric = brand.matches("-?\\d+");
-		
+
 		while((statusPage = getUserTimeline(brand, paging)).size() > 0) {
 			for (Status status : statusPage) { // Go through each status we just received from this page and check if the date matches
 				if (sdf.format(status.getCreatedAt()).equals(day)) {

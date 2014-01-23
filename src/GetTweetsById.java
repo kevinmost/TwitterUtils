@@ -14,13 +14,8 @@ import twitter4j.TwitterException;
 
 // USAGE: Create a new GetTweetsById object, passing in your Twitter client and the path to your ID text file. Call ".getAllTweets()" to return a List of every Tweet in that ID file.
 // Make sure that you have one ID per newline in your ID text file.
+// Speed: Approximately 720 Tweets per hour per token.
 public class GetTweetsById {
-//	private Twitter twitter;
-//	private List<String> ids = new ArrayList<>();
-//	private List<Status> statuses = new ArrayList<>();
-
-	
-
 	// Gets every tweet within the List<String> of Tweet IDs and returns it as a List<Status> where each element is one Tweet
 	public static List<Status> getAllTweets(String idTextFilePath) throws IOException, NumberFormatException, TwitterException, ConfigurationException, InterruptedException {
 		List<Status> statuses = new ArrayList<>();
@@ -40,10 +35,5 @@ public class GetTweetsById {
 			}
 		}
 		return statuses;
-	}
-
-	// Takes a text file where each line is one Tweet ID and puts each line into an element in the returned List<String>
-	public static List<String> parseIdTextFile(String idTextFilePath) throws IOException {
-		return Files.readAllLines(Paths.get(idTextFilePath), Charset.defaultCharset());
 	}
 }

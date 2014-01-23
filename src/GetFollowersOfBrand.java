@@ -14,13 +14,14 @@ import twitter4j.User;
 public class GetFollowersOfBrand {
 
 	private static int chunkSize = 100; // Number of followers to get in each request. If this is too large, Twitter will throw an error
+	private static Twitter twitter;
 	
 	public static List<User> getFollowers(String brand) throws TwitterException, ConfigurationException, InterruptedException {
-		Twitter twitter = TwitterTokenRefresher.getTwitterTokenRefresher().createTwitterClientWithValidToken();
+		twitter = TwitterTokenRefresher.getTwitterTokenRefresher().createTwitterClientWithValidToken();
 		List<Long> allIds = new ArrayList<>();
 		long[] ids;
 		
-		for (int i = -1; (ids = getFollowerIdsOnPage(twitter, brand, i)).length != 0; i++) { // Continues iterating as long as there are more followers still being gotten
+		for (int i = -1; (ids = getFollowerIdsOnPage(brand, i)).length != 0; i++) { // Continues iterating as long as there are more followers still being gotten
 			allIds.addAll(Arrays.asList(ArrayUtils.toObject(ids))); // Adds the current set of IDs to the allIds list
 		}
 		List<User> users = new ArrayList<>();
@@ -46,7 +47,7 @@ public class GetFollowersOfBrand {
 		
 		return users;
 	}
-	public static long[] getFollowerIdsOnPage(Twitter twitter, String brand, int page) throws ConfigurationException, TwitterException, InterruptedException {
+	public static long[] getFollowerIdsOnPage(String brand, int page) throws ConfigurationException, TwitterException, InterruptedException {
 		try {
 			return twitter.getFollowersIDs(brand, page).getIDs();
 		}
