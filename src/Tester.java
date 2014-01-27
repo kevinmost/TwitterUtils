@@ -12,9 +12,14 @@ import twitter4j.TwitterException;
 import twitter4j.User;
 
 public class Tester {
-	// args[0]: config.xml
-	// args[1]: Either a brand's name, or a file containing Tweet IDs to rehydrate
-	// args[2]: If args[1] was a brand's name, you can pass a date in the format "yyyymmdd" to get the amount of retweets for a brand on that date
+	/* Always make sure to have a tokens.xml. This file should contain as many tokens as you feel are necessary for the use of this program. 
+	 * This program will use every token that is provided in tokens.xml. No changes are required to be made directly in the code in order to scale up the program; simply add more tokens.
+	 *
+	 * There are 3 ways to call this program: 
+	 * 1) "TwitterUtils.java tokens.xml tweet-ids.txt" will "rehydrate" every Tweet ID in the txt file (put one ID per newline)
+	 * 2) "TwitterUtils.java tokens.xml united" will get the list of all of united's followers
+	 * 3) "TwitterUtils.java tokens.xml united 20140115" will return how many times united's tweets were retweeted on January 15, 2014
+	 */
 	public static void main(String[] args) throws ConfigurationException, TwitterException, NumberFormatException, IOException, InterruptedException {
 		TwitterTokenRefresher.getTwitterTokenRefresher(args[0]); // Initializes the TwitterTokenRefresher with its config. All other classes in this project are set up to request a new token from this class when they run out of API requests on the current token.
 
