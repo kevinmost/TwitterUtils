@@ -1,15 +1,14 @@
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.configuration.ConfigurationException;
 
-import tokens.TwitterTokenRefresher;
-import twitter4j.RateLimitStatus;
+import tokens.TokenProxy;
 import twitter4j.Status;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-import twitter4j.User;
 
 public class Tester {
 	/* Always make sure to have a tokens.xml. This file should contain as many tokens as you feel are necessary for the use of this program. 
@@ -20,46 +19,57 @@ public class Tester {
 	 * 2) "TwitterUtils.java tokens.xml united" will get the list of all of united's followers
 	 * 3) "TwitterUtils.java tokens.xml united 20140115" will return how many times united's tweets were retweeted on January 15, 2014
 	 */
-	public static void main(String[] args) throws ConfigurationException, TwitterException, NumberFormatException, IOException, InterruptedException {
-		TwitterTokenRefresher.getTwitterTokenRefresher(args[0]); // Initializes the TwitterTokenRefresher with its config. All other classes in this project are set up to request a new token from this class when they run out of API requests on the current token.
+	public static void main(String[] args) throws ConfigurationException, IOException {
+		if (!args[0].endsWith(".xml") || !args[2].endsWith(".txt") || (args.length == 4? args[3].length() != 8 : false)) // Exits the program if arguments passed are malformed
+			showStdErrAndExit();
+		
+		TokenProxy.getTokenProxy(args[0]); // Initializes the TokenProxy with its config. All other classes in this project are set up to request a new token from this class when they run out of API requests on the current token.
+		List<String> lines = Files.readAllLines(Paths.get(args[2]), Charset.defaultCharset()); // Parses the txt file into a List
+		
+		if (args[1].equals("brands")) {
+			System.err.println("[INFO ]: Getting followers of brands");
+			testGetFollowersOfBrand(lines);
+		}
+		else if (args[1].equals("tweets")) {
+			System.err.println("[INFO ]: Rehydrating all tweets in file");
+			testGetTweetsById(lines);
 
-		if (args.length == 2) {
-			if (args[1].contains(".")) {
-				System.err.println("Getting all tweets in file");
-				testGetTweetsById(args[1]);
-			}
-			else {
-				System.err.println("Getting followers of " + args[1]);
-				testGetFollowersOfBrand(args[1]);
-			}
 		}
-		else if (args.length == 3) {
-			System.err.println("Getting number of shares of " + args[1] + "'s tweets on " + args[2]);
-			testRetweetSummer(args[1], args[2]);
+		else if (args[1].equals("retweets")) {
+			System.err.println("[INFO ]: Getting number of shares of brand's tweets on " + args[3]);
+			testRetweetSummer(lines, args[3]);
 		}
+		else
+			showStdErrAndExit();
 	}
 	
-	
-	public static void testGetTweetsById(String filepath) throws NumberFormatException, ConfigurationException, IOException, InterruptedException, TwitterException {
-		List<Status> allStatuses = GetTweetsById.getAllTweets(filepath);
-		for (Status status : allStatuses) {
-			System.out.println(status.getId() + "|" + status.getText().replaceAll("|", ""));
+	public static void showStdErrAndExit() {
+		System.err.println("[ERROR]: Invalid argument. \nFirst argument must be tokens.xml file. \nSecond argument must be either \"brands\" to get all followers for brands, \"tweets\" to rehydrate all tweet IDs provided, or \"retweets\" to sum up retweets for a day. \nThird argument must be a .txt file containing either a list of tweet IDs or a list of brand names. \nFourth argument is a date in yyyyMMdd format, provided only if using the \"retweets\" function");
+		System.exit(1);
+	}
+	public static void testGetTweetsById(List<String> tweetIds) {
+		Map<String, Status> statusMap = GetTweetsById.getAllTweets(tweetIds);
+		for (Map.Entry<String, Status> status : statusMap.entrySet()) {
+			System.out.println(status.getKey() + "|" + status.getValue().getText().replaceAll("|", "").replaceAll("[\n\r]",""));
 		}
 	}
-	public static void testRetweetSummer(String brand, String yyyymmdd) throws ConfigurationException, TwitterException, InterruptedException {
-		System.out.println(GetSumOfRetweets.getNumberOfRetweets(brand, yyyymmdd));
-	}
-	public static void testGetFollowersOfBrand(String brand) throws ConfigurationException, TwitterException, InterruptedException {
-		List<User> followers = GetFollowersOfBrand.getFollowers(brand);
-		for (User user : followers) {
-			System.out.println(user.getName());
+	public static void testRetweetSummer(List<String> brands, String yyyymmdd) {
+		Map<String, Integer> retweetsMap = GetSumOfRetweets.getNumberOfRetweets(brands, yyyymmdd);
+		for (Map.Entry<String, Integer> brand : retweetsMap.entrySet()) {
+			System.out.println(brand.getKey() + "|" + brand.getValue());
 		}
 	}
-	public static void testTwitterTokenRefresher() throws TwitterException, ConfigurationException, InterruptedException {
-		Twitter twitter = TwitterTokenRefresher.getTwitterTokenRefresher().createTwitterClientWithValidToken();
-		for (Map.Entry<String, RateLimitStatus> rateLimit: twitter.getRateLimitStatus().entrySet()) {
-			System.err.format("%-40s%-40s", rateLimit.getKey(), rateLimit.getValue().getRemaining());
-			System.err.println();
+	public static void testGetFollowersOfBrand(List<String> brands) {
+		Map<String, List<Long>> allBrandsMap = GetFollowersOfBrand.getFollowers(brands);
+		StringBuilder sb = new StringBuilder();
+		for (Map.Entry<String, List<Long>> brand : allBrandsMap.entrySet()) {
+			sb.append(brand.getKey() + "|");
+			for (Long follower : brand.getValue()) {
+				sb.append(follower + ",");
+			}
+			sb.setLength(sb.length()-1);
+			System.out.println(sb.toString());
+			sb.setLength(0);
 		}
 	}
 }
