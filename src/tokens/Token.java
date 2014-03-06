@@ -1,6 +1,7 @@
 package tokens;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
@@ -46,7 +47,7 @@ public class Token {
 		return refreshTime;
 	}
 	public boolean isValidToken() { // Returns true if the current time is greater than the refresh time (indicating that this token is refreshed)
-		return System.currentTimeMillis()/1000 > refreshTime;
+		return TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()) > refreshTime;
 	}
 	public Configuration getConfig() {
 		return config;

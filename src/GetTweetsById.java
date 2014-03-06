@@ -1,24 +1,39 @@
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import tokens.TokenProxy;
 import twitter4j.Status;
+import twitter4j.User;
 
 // USAGE: Create a new GetTweetsById object, passing in your Twitter client and the path to your ID text file. Call ".getAllTweets()" to return a List of every Tweet in that ID file.
 // Make sure that you have one ID per newline in your ID text file.
 // Speed: Approximately 720 Tweets per hour per token.
 public class GetTweetsById {
-	// Gets every tweet within the List<String> of Tweet IDs and returns it as a List<Status> where each element is one Tweet
-	public static Map<String, Status> getAllTweets(List<String> tweetIds) {
-		Map<String, Status> statusMap = new HashMap<>();
-		for(String id: tweetIds) {
+	// Puts every tweet as its own List within the entire statusList
+	public static List<String> getAllTweets(List<String> tweetIds) {
+		List<String> statusList = new ArrayList<>();
+
+		for(String id: tweetIds) { // For each Tweet ID...
 			try {
-				statusMap.put(id, TokenProxy.getTokenProxy().getTwitter().showStatus(Long.parseLong(id.trim()))); // Take the current ID, parse it into a Long (required by Twitter4j) and get the Tweet with that ID, adding it to your List
+				Status currentStatus = TokenProxy.getTokenProxy().getTwitter().showStatus(Long.parseLong(id.trim())); // Get the current Tweet
+				User currentUser = currentStatus.getUser(); // Get the user that posted the current Tweet
+
+				// Adds the following to the List
+				statusList.add(
+						id + Tester.DELIMITER +  // The user's ID
+						currentUser.getFollowersCount() + Tester.DELIMITER +  // The followers of the user
+						currentUser.getFriendsCount() + Tester.DELIMITER +  // The friends of the user
+						currentUser.getStatusesCount() + Tester.DELIMITER +  // The number of statuses the user has posted
+						currentUser.getScreenName() + Tester.DELIMITER + // The user's name
+						currentStatus.getText().replaceAll("|", "").replaceAll("[\n\r]", " ") // The text of the Tweet
+						);
 			} catch (Exception e) {
 				TokenProxy.getTokenProxy().exceptionHandler(e);
 			}
 		}
-		return statusMap;
+		return statusList;
 	}
 }

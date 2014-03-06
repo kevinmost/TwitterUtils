@@ -19,23 +19,25 @@ public class Tester {
 	 * 2) "TwitterUtils.java tokens.xml united" will get the list of all of united's followers
 	 * 3) "TwitterUtils.java tokens.xml united 20140115" will return how many times united's tweets were retweeted on January 15, 2014
 	 */
+	public static final String DELIMITER = "|";
 	public static void main(String[] args) throws ConfigurationException, IOException {
 		if (!args[0].endsWith(".xml") || !args[2].endsWith(".txt") || (args.length == 4? args[3].length() != 8 : false)) // Exits the program if arguments passed are malformed
 			showStdErrAndExit();
-		
+
+
 		TokenProxy.getTokenProxy(args[0]); // Initializes the TokenProxy with its config. All other classes in this project are set up to request a new token from this class when they run out of API requests on the current token.
 		List<String> lines = Files.readAllLines(Paths.get(args[2]), Charset.defaultCharset()); // Parses the txt file into a List
-		
-		if (args[1].equals("brands")) {
+
+		if (args[1].equals("--brands")) {
 			System.err.println("[INFO ]: Getting followers of brands");
 			testGetFollowersOfBrand(lines);
 		}
-		else if (args[1].equals("tweets")) {
+		else if (args[1].equals("--tweets")) {
 			System.err.println("[INFO ]: Rehydrating all tweets in file");
 			testGetTweetsById(lines);
 
 		}
-		else if (args[1].equals("retweets")) {
+		else if (args[1].equals("--retweets")) {
 			System.err.println("[INFO ]: Getting number of shares of brand's tweets on " + args[3]);
 			testRetweetSummer(lines, args[3]);
 		}
@@ -48,9 +50,9 @@ public class Tester {
 		System.exit(1);
 	}
 	public static void testGetTweetsById(List<String> tweetIds) {
-		Map<String, Status> statusMap = GetTweetsById.getAllTweets(tweetIds);
-		for (Map.Entry<String, Status> status : statusMap.entrySet()) {
-			System.out.println(status.getKey() + "|" + status.getValue().getText().replaceAll("|", "").replaceAll("[\n\r]",""));
+		List<String> statusList = GetTweetsById.getAllTweets(tweetIds);
+		for (String status : statusList) {
+			System.out.println(status);
 		}
 	}
 	public static void testRetweetSummer(List<String> brands, String yyyymmdd) {
